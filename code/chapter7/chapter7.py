@@ -64,3 +64,20 @@ def normal_two_sided_bounds(probability: float,
 mu_0, sigma_0 = normal_approximation_to_binomial(1000, 0.5)
 lower_bound, upper_bound = normal_two_sided_bounds(0.95, mu_0, sigma_0)
 print(lower_bound, upper_bound)
+
+# pが0.5であると想定のもとで、95%の境界を確認する
+lo, hi = normal_two_sided_bounds(0.95, mu_0, sigma_0)
+
+# p = 0.55出会った場合の、μとσを計算する
+mu_1, sigma_1 = normal_approximation_to_binomial(1000, 0.55)
+
+# 第二種の過誤とは、帰無仮説を棄却しないという誤りがあり
+# Xが当初想定の領域に入っている場合に生じる
+type_2_probability = normal_probability_between(lo, hi, mu_1, sigma_1)
+power = 1 - type_2_probability
+print(power)
+
+hi = normal_upper_bound(0.95, mu_0, mu_0)
+type_2_probability  = normal_probability_below(hi, mu_1, sigma_1)
+power = 1 - type_2_probability
+print(power)
