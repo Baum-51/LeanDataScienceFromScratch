@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, TypeVar, Iterator
 import matplotlib.pyplot as plt
 import random
 
@@ -91,3 +91,40 @@ for epoch in range(5000):
 slope, intercept = theta
 assert 19.9 <  slope < 20.1
 assert 4.9 < intercept <5.1
+
+T = TypeVar('T') # 関数を汎用型に対応させる
+
+def minibatches(dataset: list[T],
+                batch_size: int,
+                shuffle: bool=True) -> Iterator[list[T]]:
+    """データセットからbatch_sizeの大きさのミニバッチを生成する"""
+    # インデックスは、0から開始し、batch_size、2 * batch_size、 ...となる
+    batch_starts = [start for start in range(0, len(dataset), batch_size)]
+    if shuffle: random.shuffle(batch_starts) # batchをシャッフルする
+    
+    for start in batch_starts:
+        end = start + batch_size
+        yield dataset[start:end]
+        
+theta = [random.uniform(-1, 1), random.uniform(-1, 1)]
+
+for epoch in range(1000):
+    for batch in minibatches(inputs, batch_size=20):
+        grad = vector_mean([linear_gradient(x, y, theta) for x, y in batch])
+        theta = gradient_step(theta, grad, -learning_rate)
+    print(epoch, theta)
+    
+slope, intercept = theta
+assert 19.9 < slope < 20.1   # 傾きは、おおよそ20
+assert 4.9 < intercept < 5.1 # 切片は、おおよそ5
+
+theta = [random.uniform(-1, 1), random.uniform(-1, 1)]
+for epoch in range(100):
+    for x, y in inputs:
+        grad = linear_gradient(x, y, theta)
+        theta = gradient_step(theta, grad, -learning_rate)
+    print(epoch, theta)
+    
+slope, intercept = theta
+assert 19.9 < slope < 20.1   # 傾きは、おおよそ20
+assert 4.9 < intercept < 5.1 # 切片は、おおよそ5
