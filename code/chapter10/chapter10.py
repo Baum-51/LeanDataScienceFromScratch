@@ -96,3 +96,5 @@ for i in range(num_vectors):
 # 軸ラベルが誤っている。ここで正しく修正する
 ax[-1][-1].set_xlim(ax[0][-1].get_xlim())
 ax[0][0].set_ylim(ax[0][1].get_xlim())
+
+fig.savefig('../picture/chap10-4.png')

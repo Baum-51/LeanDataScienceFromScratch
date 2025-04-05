@@ -598,4 +598,23 @@ def main():
     assert 0.923 < fpc[0] < 0.925
     assert 0.382 < fpc[1] < 0.384
 
+
+
+# Just some random data to show off correlation scatterplots
+num_points = 100
+
+def random_row() -> List[float]:
+    row = [0.0, 0, 0, 0]
+    row[0] = random_normal()
+    row[1] = -5 * row[0] + random_normal()
+    row[2] = row[0] + row[1] + 5 * random_normal()
+    row[3] = 6 if row[2] > -2 else 0
+    return row
+
+random.seed(0)
+
+corr_rows = [random_row() for _ in range(num_points)]
+
+corr_data = [list(col) for col in zip(*corr_rows)]
+
 if __name__ == "__main__": main()
