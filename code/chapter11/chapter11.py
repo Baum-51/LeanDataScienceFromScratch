@@ -21,7 +21,7 @@ assert sorted(train + test) == data
 
 Y = TypeVar('Y') # 出力変数を表す汎用型
 
-def tarin_test_split(xs: list[X],
+def train_test_split(xs: list[X],
                      ys: list[Y],
                      test_pct: float) -> tuple[list[X], list[X], list[Y], list[Y]]:
     # インデックスを生成し、リストを分割する
@@ -35,7 +35,7 @@ def tarin_test_split(xs: list[X],
     
 xs = [x for x in range(1000)]
 ys = [2 * x for x in xs]
-x_train, x_test, y_train, y_test = tarin_test_split(xs, ys, 0.25)
+x_train, x_test, y_train, y_test = train_test_split(xs, ys, 0.25)
 
 # 割合が正しいことを確認
 assert len(x_train) == len(y_train) == 750

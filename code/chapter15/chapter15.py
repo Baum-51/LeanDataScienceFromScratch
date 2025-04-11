@@ -118,17 +118,6 @@ def estimate_sample_beta(pairs: list[tuple[Vector, float]]):
     print("bootstrap sample", beta)
     return beta
 
-random.seed(0)
-
-# 実行には数分かかる
-bootstrap_betas = bootstrap_statistic(list(zip(inputs, daily_minutes_good)), estimate_sample_beta, 100)
-
-bootstrap_standard_errors = [
-    standard_deviation([beta[i] for beta in bootstrap_betas]) for i in range(4)
-]
-
-print(bootstrap_standard_errors)
-
 from scratch.probability import normal_cdf
 
 def p_value(beta_hat_j: float, sigma_hat_j: float) -> float:
@@ -191,25 +180,38 @@ def least_squares_fit_ridge(xs: list[Vector],
 
     return guess
 
-random.seed(0)
-beta_0 = least_squares_fit_ridge(inputs, daily_minutes_good, 0.0, # alpha
-                                learning_rate, 5000, 25)
+if __name__ == '__main__':
+    
+    random.seed(0)
 
-assert 5 < dot(beta_0[1:], beta_0[1:]) < 6
-assert 0.67 < multiple_r_squared(inputs, daily_minutes_good, beta_0) < 0.69
+    # 実行には数分かかる
+    bootstrap_betas = bootstrap_statistic(list(zip(inputs, daily_minutes_good)), estimate_sample_beta, 100)
 
-beta_0_1 = least_squares_fit_ridge(inputs, daily_minutes_good, 0.1, # alpha
-                                learning_rate, 5000, 25)
-assert 4 < dot(beta_0_1[1:], beta_0_1[1:]) < 5
-assert 0.67 < multiple_r_squared(inputs, daily_minutes_good, beta_0_1) < 0.69
+    bootstrap_standard_errors = [
+        standard_deviation([beta[i] for beta in bootstrap_betas]) for i in range(4)
+    ]
 
-beta_1 = least_squares_fit_ridge(inputs, daily_minutes_good, 1, # alpha
-                                learning_rate, 5000, 25)
-assert 3 < dot(beta_1[1:], beta_1[1:]) < 4
-assert 0.67 < multiple_r_squared(inputs, daily_minutes_good, beta_1) < 0.69
+    print(bootstrap_standard_errors)
+    
+    random.seed(0)
+    beta_0 = least_squares_fit_ridge(inputs, daily_minutes_good, 0.0, # alpha
+                                    learning_rate, 5000, 25)
 
-beta_10 = least_squares_fit_ridge(inputs, daily_minutes_good, 10, # alpha
-                                learning_rate, 5000, 25)
-assert 1 < dot(beta_10[1:], beta_10[1:]) < 2
-assert 0.5 < multiple_r_squared(inputs, daily_minutes_good, beta_10) < 0.6
+    assert 5 < dot(beta_0[1:], beta_0[1:]) < 6
+    assert 0.67 < multiple_r_squared(inputs, daily_minutes_good, beta_0) < 0.69
+
+    beta_0_1 = least_squares_fit_ridge(inputs, daily_minutes_good, 0.1, # alpha
+                                    learning_rate, 5000, 25)
+    assert 4 < dot(beta_0_1[1:], beta_0_1[1:]) < 5
+    assert 0.67 < multiple_r_squared(inputs, daily_minutes_good, beta_0_1) < 0.69
+
+    beta_1 = least_squares_fit_ridge(inputs, daily_minutes_good, 1, # alpha
+                                    learning_rate, 5000, 25)
+    assert 3 < dot(beta_1[1:], beta_1[1:]) < 4
+    assert 0.67 < multiple_r_squared(inputs, daily_minutes_good, beta_1) < 0.69
+
+    beta_10 = least_squares_fit_ridge(inputs, daily_minutes_good, 10, # alpha
+                                    learning_rate, 5000, 25)
+    assert 1 < dot(beta_10[1:], beta_10[1:]) < 2
+    assert 0.5 < multiple_r_squared(inputs, daily_minutes_good, beta_10) < 0.6
 
