@@ -120,3 +120,4 @@ plt.ylabel("actual outcome")
 plt.title("Logistic Regression Predicted vs. Actual")
 plt.savefig('../picture/chap16-2.png')
 plt.close()
+
