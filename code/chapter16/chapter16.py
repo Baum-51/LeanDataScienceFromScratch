@@ -26,6 +26,7 @@ plt.scatter(predictions, ys)
 plt.xlabel("predicted")
 plt.ylabel("actual")
 plt.savefig('../picture/chap16-1.png')
+plt.close()
 
 def logistic(x: float) -> float:
     return 1.0 / (1 + math.exp(-x))
@@ -93,3 +94,29 @@ beta_unscaled = [(beta[0]
                  beta[1] / stdevs[1],
                  beta[2] / stdevs[2]]
 print(beta_unscaled)
+
+true_positives = false_positives = true_negatives = false_negatives = 0
+
+for x_i, y_i in zip(x_test, y_test):
+    prediction = logistic(dot(beta, x_i))
+    
+    if y_i == 1 and prediction >= 0.5: # 真陽性：有料アカウントを有料と予測した
+        true_positives += 1
+    elif y_i == 1:
+        false_negatives += 1
+    elif prediction >= 0.5:
+        false_positives += 1
+    else:
+        true_negatives += 1
+
+precision = true_positives / (true_positives + false_positives)
+recall    = true_positives / (true_positives + false_negatives)
+
+predictions = [logistic(dot(beta, x_i)) for x_i in x_test]
+figure = plt.figure()
+plt.scatter(predictions, y_test, marker='+')
+plt.xlabel("predicted probability")
+plt.ylabel("actual outcome")
+plt.title("Logistic Regression Predicted vs. Actual")
+plt.savefig('../picture/chap16-2.png')
+plt.close()
