@@ -123,3 +123,60 @@ hiring_tree = Split('level', {  # 最初に経験値（level）を考慮する
         True: Leaf(True)        # ツイートがTrueであれば採用（True）と予測する
     })
 })
+
+def classify(tree: DecisionTree, input: Any) -> Any:
+    """入力を与えられた決定木に従い分類する"""
+    
+    # 末端ノードであれば、その値を返す
+    if isinstance(tree, Leaf):
+        return tree.value
+    
+    # そうでなければ、決定木は分類を行う属性と、
+    # その属性の値と次に適用する決定木の辞書の
+    # タプルである
+    subtree_key = getattr(input, tree.attribute)
+    if subtree_key not in tree.subtrees:
+        return tree.default_value
+    
+    subtree = tree.subtrees[subtree_key]
+    return classify(subtree, input)
+
+def build_tree_id3(inputs: list[Any],
+                   split_attributes: list[str],
+                   target_attribute: str) -> DecisionTree:
+    # ターゲットラベルをカウント
+    label_counts = Counter(getattr(input, target_attribute) for input in inputs)
+    most_common_label = label_counts.most_common(1)[0][0]
+    
+    # ユニークなラベルであれば、予測を行う
+    if len(label_counts) == 1:
+        return Leaf(most_common_label)
+    # 分岐が残ってなければ、最も多いラベルを結果として返す
+    if not split_attributes:
+        return Leaf(most_common_label)
+    
+    # そうでなければ、最良の属性を使って分割する
+    def split_entropy(attribute: str) -> float:
+        """最良の属性を見つけるヘルパー関数"""
+        return partition_entropy_by(inputs, attribute, target_attribute)
+    best_attribute = min(split_attributes, key=split_entropy)
+    
+    partitions = partition_by(inputs, best_attribute)
+    new_attributes = [a for a in split_attributes if a != best_attribute]
+    
+    # 再帰的に部分木を生成する
+    subtrees = {attribute_value : build_tree_id3(subset,
+                                                 new_attributes,
+                                                 target_attribute)
+                for attribute_value, subset in partitions.items()}
+    return Split(best_attribute, subtrees, default_value=most_common_label)
+
+tree = build_tree_id3(inputs, ['level', 'lang', 'tweets', 'phd'], 'did_well')
+
+# Trueと予測する
+assert classify(tree, Candidate('Junior', 'Java', True, False))
+# Falseと予測する
+assert not classify(tree, Candidate('Junior', 'Java', True, True))
+
+# Trueと予測する
+assert classify(tree, Candidate('Intern', 'Java', 'True', 'True'))
