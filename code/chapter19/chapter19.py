@@ -613,45 +613,49 @@ def loop(model: Layer,
             acc = correct / (i + 1)
             t.set_description(f"mnist loss: {avg_loss:.3f} acc: {acc:.3f}")
 
-#train_fizzbuzz2()
 
-random.seed(0)
+if __name__ == '__main__':
+    #train_fizzbuzz2()
 
-# ロジスティック会期モデルは線形層とソフトマックスの組み合わせ
-model = Linear(784, 10)
-loss = SoftmaxCrossEntropy()
+    random.seed(0)
 
-# このオプティマイザで試す
-optimizer = Momentum(learning_rate=0.01, momentum=0.99)
+    # ロジスティック会期モデルは線形層とソフトマックスの組み合わせ
+    model = Linear(784, 10)
+    loss = SoftmaxCrossEntropy()
 
-# 学習用データを与えて学習を行う
-loop(model, train_images, train_labels, loss, optimizer)
+    # このオプティマイザで試す
+    optimizer = Momentum(learning_rate=0.01, momentum=0.99)
 
-# テスト用データで結果の評価する（オプティマイザの指定を行わないため評価のみ行われる）
-loop(model, test_images, test_labels, loss)
+    # 学習用データを与えて学習を行う
+    loop(model, train_images, train_labels, loss, optimizer)
 
-random.seed(0)
+    # テスト用データで結果の評価する（オプティマイザの指定を行わないため評価のみ行われる）
+    loop(model, test_images, test_labels, loss)
 
-# 学習でon/offできるように名前を付ける
-dropout1 = Dropout(0.1)
-dropout2 = Dropout(0.1)
+    random.seed(0)
 
-model = Sequential([
-    Linear(784, 30),
-    dropout1,
-    Tanh(),
-    Linear(30, 10),
-    Tanh(),
-    Linear(10, 10)
-])
+    # 学習でon/offできるように名前を付ける
+    dropout1 = Dropout(0.1)
+    dropout2 = Dropout(0.1)
 
-optimizer = Momentum(learning_rate=0.01, momentum=0.99)
-loss = SoftmaxCrossEntropy()
+    model = Sequential([
+        Linear(784, 30),
+        dropout1,
+        Tanh(),
+        Linear(30, 10),
+        Tanh(),
+        Linear(10, 10)
+    ])
 
-# ドロップアウトを有効化して学習を行う
-dropout1.train = dropout2.train = True
-loop(model, train_images, train_labels, loss, optimizer)
+    optimizer = Momentum(learning_rate=0.01, momentum=0.99)
+    loss = SoftmaxCrossEntropy()
 
-# ドロップアウトを無効化して評価を行う
-dropout1.train = dropout2.train = False
-loop(model, test_images, test_labels, loss)
+
+
+    # ドロップアウトを有効化して学習を行う
+    dropout1.train = dropout2.train = True
+    loop(model, train_images, train_labels, loss, optimizer)
+
+    # ドロップアウトを無効化して評価を行う
+    dropout1.train = dropout2.train = False
+    loop(model, test_images, test_labels, loss)

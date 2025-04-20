@@ -185,25 +185,6 @@ network = [
     [[random.random() for _ in range(NUM_HIDDEN + 1)] for _ in range(4)]
 ]
 
-from scratch.linear_algebra import squared_distance
-
-learning_rate = 1.0
-
-with tqdm.trange(500) as t:
-    for epoch in t:
-        epoch_loss = 0.0
-        for x, y in zip(xs, ys):
-            predicted = feed_forward(network, x)[-1]
-            epoch_loss += squared_distance(predicted, y)
-            gradients = sqerror_gradients(network, x, y)
-            
-            # 各層の各ニューロンにgradient_stopを適用する
-            network = [[gradient_step(neuron, grad, -learning_rate)
-                        for neuron, grad in zip(layer, layer_grad)]
-                       for layer, layer_grad in zip(network, gradients)]
-        
-        t.set_description(f"fizz buzz (loss: {epoch_loss:.2f})")
-        
 def argmax(xs: list) -> int:
     """最大値のインデックスを返す"""
     return max(range(len(xs)), key=lambda i: xs[i])
@@ -212,16 +193,37 @@ assert argmax([0, -1]) == 0             # items[0]が最大
 assert argmax([-1, 0]) == 1             # items[1]が最大
 assert argmax([-1, 10, 5, 20, -3]) == 3 # items[3]が最大
 
+if __name__ == '__main__':
 
-num_correct = 0
+    from scratch.linear_algebra import squared_distance
 
-for n in range(1, 101):
-    x = binary_encode(n)
-    predicted = argmax(feed_forward(network, x)[-1])
-    actual = argmax(fizz_buzz_encode(n))
-    labels = [str(n), "fizz", "buzz", "fizzbuzz"]
-    print(n, labels[predicted], labels[actual])
-    
-    if predicted == actual:
-        num_correct += 1
-print(num_correct, "/", 100)
+    learning_rate = 1.0
+
+    with tqdm.trange(500) as t:
+        for epoch in t:
+            epoch_loss = 0.0
+            for x, y in zip(xs, ys):
+                predicted = feed_forward(network, x)[-1]
+                epoch_loss += squared_distance(predicted, y)
+                gradients = sqerror_gradients(network, x, y)
+                
+                # 各層の各ニューロンにgradient_stopを適用する
+                network = [[gradient_step(neuron, grad, -learning_rate)
+                            for neuron, grad in zip(layer, layer_grad)]
+                        for layer, layer_grad in zip(network, gradients)]
+            
+            t.set_description(f"fizz buzz (loss: {epoch_loss:.2f})")
+
+
+    num_correct = 0
+
+    for n in range(1, 101):
+        x = binary_encode(n)
+        predicted = argmax(feed_forward(network, x)[-1])
+        actual = argmax(fizz_buzz_encode(n))
+        labels = [str(n), "fizz", "buzz", "fizzbuzz"]
+        print(n, labels[predicted], labels[actual])
+        
+        if predicted == actual:
+            num_correct += 1
+    print(num_correct, "/", 100)
