@@ -426,7 +426,83 @@ class TextEmbedding(Embedding):
                    for other_word, i in self.vocab.w2i.items()]
         scores.sort(reverse=True)
 
+from scratch.deep_learning import tensor_apply, tanh
 
+class SimpleRnn(Layer):
+    """可能な限り最もシンプルな再帰層"""
+    def __init__(self, input_dim: int, hidden_dim: int) -> None:
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        
+        self.w = random_tensor(hidden_dim, input_dim, init='xavier')
+        self.u = random_tensor(hidden_dim, hidden_dim, init='xavier')
+        self.b = random_tensor(hidden_dim)
+        
+        self.reset_hidden_state()
+    
+    def reset_hidden_state(self) -> None:
+        self.hidden = [0 for _ in range(self.hidden_dim)]
+        
+    def forward(self, input: Tensor) -> Tensor:
+        self.input = input             # inputと１つ前の隠れ層の状態を
+        self.prev_hidden = self.hidden # 逆伝播のために保存する
+        
+        a = [(dot(self.w[h], input) +       # 重みとinputのドット積
+              dot(self.u[h], self.hidden) + # 重みと隠れ層のドット積
+              self.b[h])                    # バイアス
+             for h in range(self.hidden_dim)]
+        
+        self.hidden = tensor_apply(tanh, a) # tanh活性化関数を適用して
+        return self.hidden                  # 結果を返す
+    
+    def backward(self, gradient: Tensor):
+        # tanhを逆伝播させる
+        a_grad = [gradient[h] * (1 - self.hidden[h] ** 2)
+                  for h in range(self.hidden_dim)]
+        
+        # bはaと同じ勾配を持つ
+        self.b_grad = a_grad
+        
+        # w[h][i]はinput[i]で乗算し、a[h]を加えるため
+        # w_grad[h][i] = a_grad[h] * input[i]
+        self.w_grad = [[a_grad[h] * input[i]
+                        for i in range(self.input_dim)]
+                       for h in range(self.hidden_dim)]
+        
+        # 各u[h][h2]はhidden[h2]で乗算し、a[h]を加えるため
+        # u_grad[h][h2] = a_grad[h] * prev_hidden[h2]
+        self.u_grad = [[a_grad[h] * self.prev_hidden[h2]
+                        for h2 in range(self.hidden_dim)]
+                       for h in range(self.hidden_dim)]
+        
+        # input[i]は、各w[h][i]で乗算され、a[h]を加えるため
+        # input_grad[i] = sum(a_grad[h] * w[h][i] for h in ...)
+        return [sum(a_grad[h] * self.w[h][i] for h in range(self.hidden_dim))
+                for i in range(self.input_dim)]
+    
+    def params(self) -> Iterable[Tensor]:
+        return [self.w, self.u, self.b]
+    
+    def grads(self) -> Iterable[Tensor]:
+        return [self.w_grad, self.u_grad, self.b_grad]
+    
+from bs4 import BeautifulSoup
+import requests
+
+# 内容が動的のためrequestでは取れない
+url = "https://www.ycombinator.com/topcompanies/"
+soup = BeautifulSoup(requests.get(url).text, 'html5lib')
+
+# 社名を2回取得してしまうので、集合内包表記を使って重複排除する
+"""
+companies = list({b.text
+                  for b in soup('b')
+                  if "h4" in b.get("class", ('_coName_i9oky_470'))})
+"""
+# class="_coName_i9oky_470"
+companies =  [b.text for b in soup.find_all('span', '_coName_i9oky_470')]
+print(len(companies))
+assert len(companies) == 101
 
 
 
