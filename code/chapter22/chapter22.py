@@ -152,3 +152,45 @@ eigenvector_centralities, _ = find_eigenvector(adjacency_matrix)
 print('eigenvector_centralities', eigenvector_centralities)
 
 matrix_times_vector(adjacency_matrix, eigenvector_centralities)
+
+endorsements = [(0, 1), (1, 0), (0, 2), (2, 0), (1, 2),
+                (2, 1), (1, 3), (2, 3), (3, 4), (5, 4),
+                (5, 6), (7, 5), (6, 8), (8, 7), (8, 9)]
+
+from collections import Counter
+
+endorsement_counts = Counter(target for source, target in endorsements)
+
+import tqdm
+
+def page_rank(users: list[User],
+              endorsements: list[tuple[int, int]],
+              damping: float=0.85,
+              num_iters: int=100) -> dict[int, float]:
+    # どれだけ「いいね！」されているか計算する
+    outgoing_counts = Counter(target for source, target in endorsements)
+    
+    # 最初にPageRankを等しく分配する
+    num_users = len(users)
+    pr = {user.id: 1 / num_users for user in users}
+    
+    # 各ノードが各反復の中で取得するPageRankの一部分
+    base_pr = (1 - damping) / num_users
+    
+    for iter in tqdm.trange(num_iters):
+        next_pr = {user.id : base_pr for user in users} # 初期値をbase_prとする
+    
+        for source, target in endorsements:
+            # リンク元のページランクを減らしてリンク先のページランクに追加
+            next_pr[target] += damping * pr[source] / outgoing_counts[source]
+        
+        pr = next_pr
+    
+    return pr
+
+pr = page_rank(users, endorsements)
+
+# Thor(user_id 4)は、誰よりも高いページランクを持っている
+assert pr[4] > max(page_rank
+                   for user_id, page_rank in pr.items()
+                   if user_id != 4)
